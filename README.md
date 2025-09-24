@@ -2,7 +2,7 @@
 
 ## 📌 Descripción
 Este proyecto es un **prototipo en Python** que permite gestionar las **horas de extensión universitaria** requeridas por los estudiantes.
-Está diseñado como una **aplicación de consola** para registrar alumnos, lugares (empresas), actividades realizadas y validar dichas horas.
+Está diseñado como una **aplicación de consola** para registrar alumnos, lugares, actividades realizadas y validar dichas horas.
 
 ## 🎯 Objetivo
 Facilitar el control de las horas de extensión, requisito obligatorio para los estudiantes, mediante un sistema simple que:
@@ -13,7 +13,7 @@ Facilitar el control de las horas de extensión, requisito obligatorio para los 
 
 ## 🛠️ Funcionalidades
 - **Agregar alumno**: nombre y carrera.
-- **Agregar lugar**: nombre de la empresa o institución.
+- **Agregar lugar**: nombre de donde se realizaron las horas de extención.
 - **Agregar registro**: actividad, fecha, horas, semestre, alumno y lugar.
 - **Validar registro**: marcar como validado e indicar el validador.
 - **Ver estado**: muestra horas totales, validadas y faltantes por alumno y semestre.
@@ -50,13 +50,13 @@ Facilitar el control de las horas de extensión, requisito obligatorio para los 
 0) Salir
 ```
 ##  💻 Estado actual
-Prototipo funcional en memoria (los datos se pierden al cerrar).
-Sin validación avanzada de entradas (fecha, horas, IDs).
-Sin persistencia en disco ni interfaz gráfica.
+- Prototipo funcional en memoria (los datos se pierden al cerrar).
+- Sin validación avanzada de entradas (fecha, horas, IDs).
+- Sin persistencia en disco ni interfaz gráfica.
 
 ## Cosas pendientes a agregar
-Agregar validaciones robustas (fechas, números, IDs).
-Implementar persistencia (JSON o base de datos).
-Exportar reportes (CSV/Excel).
-Migrar a interfaz web (Flask/FastAPI) o GUI.
-Manejo de roles (estudiante, validador).
+- Agregar validaciones robustas (fechas, números, IDs).
+- Implementar persistencia (JSON o base de datos).
+- Exportar reportes (CSV/Excel).
+- Migrar a interfaz web (Flask/FastAPI) o GUI.
+- Manejo de roles (estudiante, validador).
