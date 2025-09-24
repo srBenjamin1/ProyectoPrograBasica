@@ -34,7 +34,7 @@ Facilitar el control de las horas de extensión, requisito obligatorio para los 
 1. Clonar o descargar el archivo `Código Proyecto.py`.
 2. Ejecutar en consola:
    ```bash
-   python Código\ Proyecto.py
+   python Ruta\ Proyecto.py
    ```
 3. Seguir el menú interactivo:
 ```bash
