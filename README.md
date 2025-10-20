@@ -1,62 +1,88 @@
-# Proyecto: Gestión de Horas de Extensión (Prototipo CLI)
+# Proyecto: Gestión de Horas de Extensión (Prototipo — Streamlit + DuckDB)
 
 ## 📌 Descripción
-Este proyecto es un **prototipo en Python** que permite gestionar las **horas de extensión universitaria** requeridas por los estudiantes.
-Está diseñado como una **aplicación de consola** para registrar alumnos, lugares, actividades realizadas y validar dichas horas.
+Este proyecto es un prototipo en Python para gestionar las **horas de extensión universitaria**. Ha evolucionado de una utilidad de consola a una aplicación web ligera usando **Streamlit** con persistencia en **DuckDB**. Incluye además soporte opcional de autenticación con Microsoft (OAuth / PKCE).
 
-## 🎯 Objetivo
-Facilitar el control de las horas de extensión, requisito obligatorio para los estudiantes, mediante un sistema simple que:
-- Registre alumnos y lugares autorizados.
-- Cree registros de actividades con horas trabajadas.
-- Valide las horas por parte de un responsable.
-- Consulte el estado de cumplimiento por semestre.
+## 🧩 Tecnologías principales
+- Python 3.x
+- Streamlit (interfaz web)
+- DuckDB (base de datos embebida, archivo en data/extension.duckdb)
+- Requests (para llamadas a Microsoft Graph cuando se usa OAuth)
+- Dotenv (lectura de variables de entorno)
+- PBKDF2-HMAC-SHA256 para hashing de contraseñas locales
 
-## 🛠️ Funcionalidades
-- **Agregar alumno**: nombre y carrera.
-- **Agregar lugar**: nombre de donde se realizaron las horas de extención.
-- **Agregar registro**: actividad, fecha, horas, semestre, alumno y lugar.
-- **Validar registro**: marcar como validado e indicar el validador.
-- **Ver estado**: muestra horas totales, validadas y faltantes por alumno y semestre.
-- **Ver pendientes**: lista registros sin validar.
-- **Listar alumnos y lugares**.
+## 📂 Estructura relevante (resumen)
+- 0_Inicio.py — Pantalla principal y gestión de sesión en Streamlit.
+- utils/db.py — Acceso a datos con DuckDB:
+  - Tablas: alumnos, lugares, registros, auditoria, usuarios.
+  - Borrado lógico (campo `activo`) en alumnos y lugares.
+  - Auditoría de cambios (tabla `auditoria`).
+  - Usuarios locales con hash PBKDF2.
+- utils/microsoft_auth.py — Flujo OAuth opcional con Microsoft (PKCE si no hay client secret), validación de dominio `@uvg.edu.gt`, utilidades para administrar admins en sesión.
+- .env — Variables de configuración (AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, REDIRECT_URI, EXT_DB_PATH, MICROSOFT_ADMIN_STUDENTS).
 
-## 📂 Estructura de datos
-- `alumnos`: lista de diccionarios con `id`, `nombre`, `carrera`.
-- `lugares`: lista de diccionarios con `id`, `nombre`.
-- `registros`: lista de diccionarios con:
-  - `id`, `alumno_id`, `lugar_id`, `actividad`, `fecha`, `horas`, `semestre`, `validado`, `validador`.
+## 🎯 Funcionalidades actuales
+- Interfaz web con Streamlit para:
+  - Registrar alumnos y lugares.
+  - Crear registros de actividades (actividad, fecha, horas, año, semestre).
+  - Validar registros (marcar validados y registrar validador).
+  - Consultar estado por alumno/semestre (total, validadas, faltantes).
+  - Listar pendientes, alumnos y lugares.
+  - Gestión básica de usuarios locales (login) y sesión.
+- Persistencia en DuckDB con esquemas y secuencias.
+- Auditoría de operaciones (INSERT/UPDATE/DELETE/VALIDAR) con before/after en JSON.
+- Login local con contraseñas hasheadas (PBKDF2) y verificación segura.
+- Soporte opcional: Login con Microsoft (requiere configurar AZURE_CLIENT_ID y REDIRECT_URI). El flujo valida que el correo pertenezca al dominio `@uvg.edu.gt` y determina rol según el formato del correo y una lista de estudiantes-admins en session_state o .env.
 
 ## ⚙️ Requisitos
-- **Python 3.x**
-- No requiere librerías externas (solo `input()` y estructuras básicas).
+- Python 3.8+
+- Instalar dependencias (ejemplo):
+  pip install streamlit duckdb pandas python-dotenv requests
 
-## ▶️ Ejecución
-1. Clonar o descargar el archivo `Código Proyecto.py`.
-2. Ejecutar en consola:
-   ```bash
-   python Ruta\ Proyecto.py
-   ```
-3. Seguir el menú interactivo:
-```bash
---- MENU ---
-1) Agregar alumno
-2) Agregar lugar
-3) Agregar registro
-4) Validar
-5) Ver estado
-6) Ver pendientes
-7) Ver alumnos
-8) Ver lugares
-0) Salir
-```
-##  💻 Estado actual
-- Prototipo funcional en memoria (los datos se pierden al cerrar).
-- Sin validación avanzada de entradas (fecha, horas, IDs).
-- Sin persistencia en disco ni interfaz gráfica.
+## ▶️ Ejecución (desarrollo)
+1. Asegúrate de tener las dependencias instaladas.
+2. Configura variables en `.env` (ver sección abajo).
+3. Ejecuta la app:
+   streamlit run 0_Inicio.py
+4. Abre el navegador en la URL que Streamlit muestre (por defecto http://localhost:8501).
 
-## Cosas pendientes a agregar
-- Agregar validaciones robustas (fechas, números, IDs).
-- Implementar persistencia (JSON o base de datos).
-- Exportar reportes (CSV/Excel).
-- Migrar a interfaz web (Flask/FastAPI) o GUI.
-- Manejo de roles (estudiante, validador).
+## 🔐 Variables de entorno (.env)
+- EXT_DB_PATH: ruta al archivo DuckDB (ej: data/extension.duckdb)
+- AZURE_CLIENT_ID: Client ID para Microsoft OAuth (opcional)
+- AZURE_CLIENT_SECRET: Client Secret (opcional; si no existe se usa PKCE)
+- REDIRECT_URI: URI de redirección registrada (ej: http://localhost:8501)
+- MICROSOFT_ADMIN_STUDENTS: lista CSV de IDs de estudiante que serán admins por defecto (ej: "25837")
+
+Ejemplo (ya incluido en proyecto):
+EXT_DB_PATH=data/extension.duckdb
+AZURE_CLIENT_ID=...
+REDIRECT_URI=http://localhost:8501
+MICROSOFT_ADMIN_STUDENTS="25837"
+
+## 🔎 Notas de seguridad y despliegue
+- No incluir secretos reales (.env) en repositorios públicos.
+- Si usas AZURE_CLIENT_SECRET trátalo como secreto (Secret Manager / variables de entorno en CI/CD).
+- Las contraseñas locales están hasheadas con PBKDF2; para mayor seguridad ajustar iteraciones y políticas.
+- DuckDB crea un archivo en disco; hacer backups si es necesario.
+- El flujo de Microsoft implementado valida dominio `@uvg.edu.gt` pero no integra con Azure AD Enterprise (es flujo público con Graph API).
+
+## 🛠️ Limitaciones y tareas pendientes
+- Validación robusta de entradas (fechas, IDs, límites de horas).
+- Interfaz administrativa para gestionar usuarios y vincular alumnos a cuentas.
+- Persistir la lista de admins de Microsoft en BD o un servicio, actualmente está en session_state.
+- Exportar reportes (CSV/Excel) y paginación en listados grandes.
+- Tests automatizados y CI/CD.
+- Considerar migración a un servidor backend (FastAPI/Flask) si la app crece.
+
+## 🧪 Usuarios demo
+La base de datos se inicializa con usuarios demo si la tabla `usuarios` está vacía:
+- admin / 1234 → Rol: Admin
+- depto / 1234 → Rol: Departamento
+- empresa / 1234 → Rol: Empresa
+- estudiante / 1234 → Rol: Estudiante
+
+---
+
+Si quieres, puedo también:
+- Actualizar el README con ejemplos de endpoints SQL o consultas frecuentes.
+- Añadir instrucciones de despliegue en Docker o en un servidor (Streamlit Sharing / Heroku / Azure).
