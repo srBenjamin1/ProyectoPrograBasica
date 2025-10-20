@@ -1,0 +1,30 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "username": "alice",
+      "role": "user"
+    },
+    {
+      "id": 3,
+      "username": "bob",
+      "role": "user"
+    }
+  ],
+  "permissions": [
+    {
+      "id": 1,
+      "name": "read_reports"
+    },
+    {
+      "id": 2,
+      "name": "edit_settings"
+    }
+  ],
+  "user_permissions": []
+}
