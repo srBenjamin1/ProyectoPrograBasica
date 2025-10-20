@@ -15,7 +15,7 @@ Esta es una app prototipo en Python que gestiona horas de extensión. Usa Stream
 1) Clonar el repositorio
 - Windows / macOS / Linux:
   ```bash
-  git clone <tu-repo-url>
+  git clone <[tu-repo-url](https://github.com/srBenjamin1/ProyectoPrograBasica/tree/main)>
   cd ProyectoPrograBasica
   ```
 
