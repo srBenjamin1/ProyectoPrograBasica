@@ -214,21 +214,6 @@ def microsoft_login_flow() -> bool:
     if "code" in query_params:
         code = query_params["code"]
         
-        # Si viene de popup, cerrar ventana automáticamente
-        if st.session_state.get("ms_popup_login"):
-            st.markdown("""
-            <script>
-                // Cerrar ventana popup
-                window.close();
-                // Si no se puede cerrar (no es popup), redirigir
-                setTimeout(function() {
-                    if (!window.closed) {
-                        window.location.href = window.location.origin;
-                    }
-                }, 500);
-            </script>
-            """, unsafe_allow_html=True)
-        
         with st.spinner("🔄 Verificando credenciales con Microsoft..."):
             # Intercambiar código por token
             token_result = exchange_code_for_token(code)
@@ -270,10 +255,8 @@ def microsoft_login_flow() -> bool:
                     # Inicializar admins
                     _ = get_admin_students()
                     
-                    # Limpiar URL y estado de popup
+                    # Limpiar URL
                     st.query_params.clear()
-                    if "ms_popup_login" in st.session_state:
-                        del st.session_state["ms_popup_login"]
                     
                     st.success(f"✅ Bienvenido, {display_name}!")
                     st.rerun()
