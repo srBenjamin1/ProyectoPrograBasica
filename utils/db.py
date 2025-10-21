@@ -186,20 +186,29 @@ def _init_sequence(con, seq_name: str, table_name: str) -> None:
     """
     # Verificar si la secuencia existe
     try:
+        # Intentar eliminar la secuencia si existe
         con.execute(f"DROP SEQUENCE IF EXISTS {seq_name};")
-    except:
+    except Exception:
+        # Si falla, continuar (la secuencia no existe o no se puede eliminar)
         pass
     
     # Obtener el máximo ID actual de la tabla
     try:
         max_id = con.execute(f"SELECT COALESCE(MAX(id), 0) FROM {table_name}").fetchone()[0]
-    except:
+    except Exception:
         max_id = 0
     
     # Crear secuencia comenzando desde max_id + 1
     start_value = max_id + 1
-    con.execute(f"CREATE SEQUENCE {seq_name} START {start_value};")
-
+    try:
+        con.execute(f"CREATE SEQUENCE IF NOT EXISTS {seq_name} START {start_value};")
+    except Exception:
+        # Si la secuencia ya existe, intentar resetearla
+        try:
+            con.execute(f"ALTER SEQUENCE {seq_name} RESTART WITH {start_value};")
+        except Exception:
+            # Si todo falla, simplemente continuar
+            pass
 
 
 # ------------------ Auditoría ------------------
