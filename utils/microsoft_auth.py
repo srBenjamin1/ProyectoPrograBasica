@@ -288,7 +288,7 @@ def microsoft_login_flow() -> bool:
 
 
 def render_microsoft_login_button():
-    """Renderiza botón con Material Symbols que abre popup para login"""
+    """Renderiza botón con Material Symbol que redirige en la misma pestaña"""
     
     # DEBUG: Mostrar configuración (solo en desarrollo)
     if st.sidebar.checkbox("🔍 Mostrar configuración OAuth (debug)", value=False):
@@ -327,92 +327,16 @@ CLIENT_SECRET: {'Configurado ✓' if CLIENT_SECRET else 'No configurado (usando 
         st.error("❌ No se pudo generar la URL de autenticación")
         return
     
-    # Marcar que se usará popup
-    st.session_state["ms_popup_login"] = True
-    
-    # JavaScript para abrir popup
-    popup_script = f"""
-    <script>
-    function openMicrosoftLogin() {{
-        const width = 500;
-        const height = 700;
-        const left = (screen.width / 2) - (width / 2);
-        const top = (screen.height / 2) - (height / 2);
-        
-        const popup = window.open(
-            '{auth_url}',
-            'Microsoft Login',
-            `width=${{width}},height=${{height}},left=${{left}},top=${{top}},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`
-        );
-        
-        // Verificar si el popup se abrió
-        if (popup) {{
-            // Monitorear cuando el popup se cierre
-            const checkPopup = setInterval(() => {{
-                if (popup.closed) {{
-                    clearInterval(checkPopup);
-                    // Recargar la página principal para verificar login
-                    window.location.reload();
-                }}
-            }}, 500);
-        }} else {{
-            alert('Por favor, permite ventanas emergentes para iniciar sesión con Microsoft');
-        }}
-        
-        return false;
-    }}
-    </script>
-    """
-    
-    st.markdown(popup_script, unsafe_allow_html=True)
-    
-    # Botón estilizado con Material Symbols
-    st.markdown("""
-    <style>
-    .ms-login-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
-        color: white;
-        padding: 14px 32px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
-        transition: all 0.3s ease;
-        text-decoration: none;
-        width: 100%;
-        max-width: 400px;
-        margin: 20px auto;
-    }
-    
-    .ms-login-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4);
-        background: linear-gradient(135deg, #0086f0 0%, #006bb8 100%);
-    }
-    
-    .ms-login-button:active {
-        transform: translateY(0);
-    }
-    
-    .ms-icon {
-        font-size: 24px;
-        vertical-align: middle;
-    }
-    </style>
-    
-    <div style="text-align: center; padding: 20px 0;">
-        <button class="ms-login-button" onclick="openMicrosoftLogin()">
-            <span class="material-symbols-outlined ms-icon">login</span>
-            Iniciar sesión con Microsoft
-        </button>
-    </div>
-    """, unsafe_allow_html=True)
+    # Centrar el botón
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        # Usar st.link_button con Material Symbol Dataset
+        st.link_button(
+            ":material/dataset: Iniciar sesión con Microsoft",
+            auth_url,
+            use_container_width=True,
+            type="primary"
+        )
     
     st.info("🎓 Solo usuarios con correo **@uvg.edu.gt**")
     
