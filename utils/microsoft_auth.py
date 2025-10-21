@@ -1,6 +1,6 @@
 """
 Autenticación con Microsoft usando OAuth público.
-Versión con debugging mejorado para diagnosticar problemas de conexión.
+Versión con popup window y Material Symbols.
 """
 import streamlit as st
 import requests
@@ -72,7 +72,7 @@ def get_auth_url() -> str:
         'redirect_uri': REDIRECT_URI,
         'response_mode': 'query',
         'scope': ' '.join(SCOPES),
-        'prompt': 'select_account',  # Añadir para forzar selección de cuenta
+        'prompt': 'select_account',
     }
 
     # Generar state aleatorio
@@ -123,7 +123,6 @@ def exchange_code_for_token(code: str) -> Optional[Dict]:
             error_msg = error_data.get('error_description', response.text)
             st.error(f"❌ Error obteniendo token: {error_msg}")
             
-            # Debug info en expander
             with st.expander("🔍 Información de debug"):
                 st.code(f"""
 Status Code: {response.status_code}
@@ -215,6 +214,21 @@ def microsoft_login_flow() -> bool:
     if "code" in query_params:
         code = query_params["code"]
         
+        # Si viene de popup, cerrar ventana automáticamente
+        if st.session_state.get("ms_popup_login"):
+            st.markdown("""
+            <script>
+                // Cerrar ventana popup
+                window.close();
+                // Si no se puede cerrar (no es popup), redirigir
+                setTimeout(function() {
+                    if (!window.closed) {
+                        window.location.href = window.location.origin;
+                    }
+                }, 500);
+            </script>
+            """, unsafe_allow_html=True)
+        
         with st.spinner("🔄 Verificando credenciales con Microsoft..."):
             # Intercambiar código por token
             token_result = exchange_code_for_token(code)
@@ -256,8 +270,11 @@ def microsoft_login_flow() -> bool:
                     # Inicializar admins
                     _ = get_admin_students()
                     
-                    # Limpiar URL
+                    # Limpiar URL y estado de popup
                     st.query_params.clear()
+                    if "ms_popup_login" in st.session_state:
+                        del st.session_state["ms_popup_login"]
+                    
                     st.success(f"✅ Bienvenido, {display_name}!")
                     st.rerun()
                 else:
@@ -271,7 +288,7 @@ def microsoft_login_flow() -> bool:
 
 
 def render_microsoft_login_button():
-    """Renderiza un link para login con Microsoft (funciona 100% en Streamlit)"""
+    """Renderiza botón con Material Symbols que abre popup para login"""
     
     # DEBUG: Mostrar configuración (solo en desarrollo)
     if st.sidebar.checkbox("🔍 Mostrar configuración OAuth (debug)", value=False):
@@ -300,15 +317,6 @@ CLIENT_SECRET: {'Configurado ✓' if CLIENT_SECRET else 'No configurado (usando 
             AZURE_CLIENT_SECRET = "tu-client-secret-aqui"
             REDIRECT_URI = "https://tu-app.streamlit.app"
             ```
-            
-            **Para desarrollo local:**
-            1. Crea archivo `.env`
-            2. Agrega:
-            ```
-            AZURE_CLIENT_ID="tu-client-id"
-            AZURE_CLIENT_SECRET="tu-client-secret"
-            REDIRECT_URI="http://localhost:8501"
-            ```
             """)
         return
     
@@ -319,23 +327,92 @@ CLIENT_SECRET: {'Configurado ✓' if CLIENT_SECRET else 'No configurado (usando 
         st.error("❌ No se pudo generar la URL de autenticación")
         return
     
-    # SOLUCIÓN: Usar st.link_button (disponible en Streamlit 1.28+)
+    # Marcar que se usará popup
+    st.session_state["ms_popup_login"] = True
+    
+    # JavaScript para abrir popup
+    popup_script = f"""
+    <script>
+    function openMicrosoftLogin() {{
+        const width = 500;
+        const height = 700;
+        const left = (screen.width / 2) - (width / 2);
+        const top = (screen.height / 2) - (height / 2);
+        
+        const popup = window.open(
+            '{auth_url}',
+            'Microsoft Login',
+            `width=${{width}},height=${{height}},left=${{left}},top=${{top}},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`
+        );
+        
+        // Verificar si el popup se abrió
+        if (popup) {{
+            // Monitorear cuando el popup se cierre
+            const checkPopup = setInterval(() => {{
+                if (popup.closed) {{
+                    clearInterval(checkPopup);
+                    // Recargar la página principal para verificar login
+                    window.location.reload();
+                }}
+            }}, 500);
+        }} else {{
+            alert('Por favor, permite ventanas emergentes para iniciar sesión con Microsoft');
+        }}
+        
+        return false;
+    }}
+    </script>
+    """
+    
+    st.markdown(popup_script, unsafe_allow_html=True)
+    
+    # Botón estilizado con Material Symbols
     st.markdown("""
-    <div style="text-align: center; padding: 20px 0 10px 0;">
+    <style>
+    .ms-login-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+        color: white;
+        padding: 14px 32px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        width: 100%;
+        max-width: 400px;
+        margin: 20px auto;
+    }
+    
+    .ms-login-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4);
+        background: linear-gradient(135deg, #0086f0 0%, #006bb8 100%);
+    }
+    
+    .ms-login-button:active {
+        transform: translateY(0);
+    }
+    
+    .ms-icon {
+        font-size: 24px;
+        vertical-align: middle;
+    }
+    </style>
+    
+    <div style="text-align: center; padding: 20px 0;">
+        <button class="ms-login-button" onclick="openMicrosoftLogin()">
+            <span class="material-symbols-outlined ms-icon">login</span>
+            Iniciar sesión con Microsoft
+        </button>
+    </div>
     """, unsafe_allow_html=True)
-    
-    # Crear columnas para centrar el botón
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        # Usar st.link_button que SÍ funciona en Streamlit
-        st.link_button(
-            "🔐 Iniciar sesión con Microsoft",
-            auth_url,
-            use_container_width=True,
-            type="primary"
-        )
-    
-    st.markdown("</div>", unsafe_allow_html=True)
     
     st.info("🎓 Solo usuarios con correo **@uvg.edu.gt**")
     
@@ -403,4 +480,3 @@ def add_admins_from_codes(codes: List[str]) -> int:
 def add_admin_from_code(code: str) -> bool:
     """Conveniencia para agregar un solo código/email."""
     return add_admins_from_codes([code]) == 1
-#xd
