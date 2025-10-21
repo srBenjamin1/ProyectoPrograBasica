@@ -11,6 +11,8 @@ import secrets
 import hashlib
 import base64
 from urllib.parse import urlencode, quote
+import json
+import streamlit.components.v1 as components
 
 # Intentar cargar .env solo si existe (desarrollo local)
 try:
@@ -310,16 +312,31 @@ CLIENT_SECRET: {'Configurado ✓' if CLIENT_SECRET else 'No configurado (usando 
         st.error("❌ No se pudo generar la URL de autenticación")
         return
     
-    # Centrar el botón
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        # Usar st.link_button con Material Symbol Dataset
-        st.link_button(
-            ":material/dataset: Iniciar sesión con Microsoft",
-            auth_url,
-            use_container_width=True,
-            type="primary"
-        )
+        # Centrar el botón: usar un pequeño componente HTML/JS que redirija en la misma pestaña
+        # Esto evita que se abra una pestaña/popup separada y deje la pestaña original sin uso.
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+                button_label = "📤 Iniciar sesión con Microsoft"
+                # Crear HTML seguro usando json.dumps para escapar la URL
+                safe_url = json.dumps(auth_url)
+                html = f"""
+                <div style="display:flex;justify-content:center;">
+                    <button id="ms_login_btn" style="
+                        background:#0067b8;color:white;border:none;padding:10px 18px;border-radius:6px;font-size:16px;cursor:pointer;"
+                    >{button_label}</button>
+                </div>
+                <script>
+                    const authUrl = {safe_url};
+                    const btn = document.getElementById('ms_login_btn');
+                    if (btn) {{
+                        btn.addEventListener('click', () => {{
+                            // Redirigir en la misma pestaña (evita popup)
+                            window.location.href = authUrl;
+                        }});
+                    }}
+                </script>
+                """
+                components.html(html, height=80)
     
     st.info("🎓 Solo usuarios con correo **@uvg.edu.gt**")
     
