@@ -74,9 +74,6 @@ def require_login() -> None:
         st.stop()
 
 
-
-
-
 def _render_logo_in_sidebar() -> None:
     """
     Renderiza un logo en la barra lateral usando st.logo().
@@ -134,10 +131,11 @@ def render_userbox() -> None:
                 st.page_link("pages/2_Lugares.py", label=":material/domain: Lugares")
                 st.page_link("pages/3_Registros.py", label=":material/app_registration: Registros")
                 st.page_link("pages/4_Validacion.py", label=":material/check_box: Validación")
+                st.page_link("pages/5_Administradores.py", label=":material/admin_panel_settings: Administradores")
             elif rol == 'Estudiante':
                 st.page_link("0_Inicio.py", label=":material/home: Inicio")
                 st.page_link("pages/3_Registros.py", label=":material/app_registration: Mis Registros")
-            elif rol in ['Empresa', 'Departamento']:
+            elif rol in ['Empresa', 'Departamento', 'Docente']:
                 st.page_link("0_Inicio.py", label=":material/home: Inicio")
                 st.page_link("pages/3_Registros.py", label=":material/app_registration: Registros")
                 st.page_link("pages/4_Validacion.py", label=":material/check_box: Validación")

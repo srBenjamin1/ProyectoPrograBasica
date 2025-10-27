@@ -1,6 +1,6 @@
 """
 Autenticación con Microsoft usando OAuth público.
-Versión con popup window y Material Symbols.
+Versión con Material Symbols y gestión de admins.
 """
 import streamlit as st
 import requests
@@ -40,8 +40,8 @@ SCOPES = ["User.Read"]
 # Dominios permitidos de la UVG
 DOMINIOS_PERMITIDOS = ["@uvg.edu.gt"]
 
-# Estudiantes con permiso admin por defecto
-DEFAULT_ADMIN_STUDENTS = set(s for s in _get_config("MICROSOFT_ADMIN_STUDENTS", "25837","25498").split(",") if s)
+# Estudiantes con permiso admin por defecto - CORREGIDO
+DEFAULT_ADMIN_STUDENTS = set(s for s in _get_config("MICROSOFT_ADMIN_STUDENTS", "25837,25498").split(",") if s)
 
 
 def _generate_pkce_pair():
@@ -200,6 +200,13 @@ def get_admin_students() -> set:
     if "microsoft_admin_students" not in st.session_state:
         st.session_state["microsoft_admin_students"] = set(DEFAULT_ADMIN_STUDENTS)
     return st.session_state["microsoft_admin_students"]
+
+
+def is_current_user_admin() -> bool:
+    """True si el usuario actual es Admin"""
+    if not st.session_state.get("auth"):
+        return False
+    return st.session_state.get("role") == "Admin"
 
 
 def microsoft_login_flow() -> bool:
@@ -387,3 +394,25 @@ def add_admins_from_codes(codes: List[str]) -> int:
 def add_admin_from_code(code: str) -> bool:
     """Conveniencia para agregar un solo código/email."""
     return add_admins_from_codes([code]) == 1
+
+
+def remove_admin_by_code(code: str) -> bool:
+    """Remueve un admin por su código"""
+    if not is_current_user_admin():
+        return False
+    
+    sid = _normalize_student_id_from_input(code)
+    if not sid:
+        return False
+    
+    admins = get_admin_students()
+    if sid in admins:
+        admins.remove(sid)
+        st.session_state["microsoft_admin_students"] = admins
+        return True
+    return False
+
+
+def get_admin_list() -> List[str]:
+    """Retorna lista de códigos de admin"""
+    return sorted(list(get_admin_students()))
