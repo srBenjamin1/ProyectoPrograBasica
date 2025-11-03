@@ -41,7 +41,7 @@ SCOPES = ["User.Read"]
 DOMINIOS_PERMITIDOS = ["@uvg.edu.gt"]
 
 # Estudiantes con permiso admin por defecto - CORREGIDO
-DEFAULT_ADMIN_STUDENTS = set(s for s in _get_config("MICROSOFT_ADMIN_STUDENTS", "25837,25498").split(",") if s)
+DEFAULT_ADMIN_STUDENTS = set(s for s in _get_config("MICROSOFT_ADMIN_STUDENTS", "25837,25498, 25675, 25399, 251160").split(",") if s)
 
 
 def _generate_pkce_pair():
