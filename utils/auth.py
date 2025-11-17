@@ -132,6 +132,7 @@ def render_userbox() -> None:
                 st.page_link("pages/3_Registros.py", label=":material/app_registration: Registros")
                 st.page_link("pages/4_Validacion.py", label=":material/check_box: Validación")
                 st.page_link("pages/5_Administradores.py", label=":material/admin_panel_settings: Administradores")
+                st.page_link("pages/6_Dashboard.py", label=":material/dashboard: Dashboard")
             elif rol == 'Estudiante':
                 st.page_link("0_Inicio.py", label=":material/home: Inicio")
                 st.page_link("pages/3_Registros.py", label=":material/app_registration: Mis Registros")
@@ -139,6 +140,7 @@ def render_userbox() -> None:
                 st.page_link("0_Inicio.py", label=":material/home: Inicio")
                 st.page_link("pages/3_Registros.py", label=":material/app_registration: Registros")
                 st.page_link("pages/4_Validacion.py", label=":material/check_box: Validación")
+                st.page_link("pages/6_Dashboard.py", label=":material/dashboard: Dashboard")
             else:
                 st.page_link("0_Inicio.py", label=":material/home: Inicio")
             
