@@ -140,8 +140,6 @@ try:
             df_filtrado = df_filtrado[df_filtrado['validado'] == True]
         elif validado_filtro == "Pendientes":
             df_filtrado = df_filtrado[df_filtrado['validado'] == False]
-    else:
-        df_filtrado = df
     
     # Visualizaciones en tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
