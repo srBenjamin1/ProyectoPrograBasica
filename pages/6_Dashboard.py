@@ -416,7 +416,7 @@ try:
             color='horas',
             color_continuous_scale='Viridis'
         )
-        fig.update_xaxis(type='category')
+        fig.update_xaxes(type='category')
         st.plotly_chart(fig, use_container_width=True)
     
     # Botón de exportar
